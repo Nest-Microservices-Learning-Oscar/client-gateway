@@ -19,7 +19,7 @@ import { PaginationDto } from 'src/common';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) { }
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
@@ -27,8 +27,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(@Query() ordersPaginationDto: OrdersPaginationDto) {
-    return this.client.send('findAllOrders', ordersPaginationDto);
+  async findAll(@Query() ordersPaginationDto: OrdersPaginationDto) {
+    try {
+      return await firstValueFrom(this.client.send('findAllOrders', ordersPaginationDto));
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Get('id/:id')
